@@ -7,15 +7,27 @@ from data import EventDataset
 from models.flows import create_spline_flow
 
 
+def convert_cluster_state_dict(state_dict):
+    # Create a new state_dict without the "module." prefix
+    new_state_dict = {}
+    for k, v in state_dict.items():
+        if k.startswith("module."):
+            new_state_dict[k[7:]] = v  # Remove 'module.' prefix
+        else:
+            new_state_dict[k] = v
+
+    return new_state_dict
+
+
 bins = 200
-z_bins = 50
+z_bins = 30
 
 data = EventDataset(
     "data/background.csv",
     "data/signal.csv",
     ["mass"],
-    10_000,
-    0.1,
+    100_000,
+    0.01,
     mass_region=(500.0, None),
     normalize=True,
     norm_type="one_dim",
@@ -25,7 +37,9 @@ Y = data.labels
 
 unconstrained_flow = create_spline_flow(10, 1, 32, 64, 4.0)
 unconstrained_flow.load_state_dict(
-    torch.load("saved_models_1d/unconstrained_2_50_epochs.pth")
+    convert_cluster_state_dict(
+        torch.load("saved_models_1d/single_dim_50_epochs_s00_b4096_p001_0.pth")
+    )
 )
 unconstrained_Y = unconstrained_flow.log_prob(X)
 
@@ -65,17 +79,18 @@ modified_z_score_second_order = (
 # Modified z-score histogram
 plt.hist(
     [
-        modified_z_score_first_order[Y == 0.0].detach().numpy(),
-        modified_z_score_first_order[Y == 1.0].detach().numpy(),
+        gradients_first_order[Y == 0.0].detach().numpy(),
+        gradients_first_order[Y == 1.0].detach().numpy(),
     ],
     bins=z_bins,
     color=["tab:blue", "tab:red"],
     label=["Background", "Signal"],
-    range=(-4, 4),
-    histtype="barstacked",
+    # range=(-8, 8),
+    histtype="step",
+    density=True,
 )
-plt.xlabel("Normalized magnitude (modified z-scores)")
-plt.ylabel("Entries")
+plt.xlabel("Gradient norm")
+plt.ylabel("Density")
 plt.legend()
 plt.title("1D Unconstrained model, first-order-gradient magnitudes")
 plt.show()
@@ -91,7 +106,7 @@ settings = {
     "second_order_mad": second_order_mad.item(),
 }
 print(settings)
-settings = pd.DataFrame(settings)
-save_name = input("Save settings as: ")
-if save_name.strip() != "":
-    settings.write_csv(f"pre_process_results/1d_{save_name}.csv")
+# settings = pd.DataFrame(settings)
+# save_name = input("Save settings as: ")
+# if save_name.strip() != "":
+#     settings.write_csv(f"pre_process_results/1d_{save_name}.csv")

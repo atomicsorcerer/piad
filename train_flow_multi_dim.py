@@ -25,11 +25,11 @@ WEIGHT_DECAY = 0.01
 EPOCHS = 5
 DATASET_SIZE = 500_000
 
-SMOOTHNESS_PENALTY_FACTOR = 15.0
+SMOOTHNESS_PENALTY_FACTOR = 0.1
 IMPOSSIBLE_MASS_PENALTY_FACTOR = 0.0
 
 # Load settings from pre-processing
-settings = pd.read_csv("pre_process_results/1d_unconstrained_full.csv")
+settings = pd.read_csv("pre_process_results/multi_dim_50_epochs_s0_b4096_p001.csv")
 GRAD_MEDIAN = settings["first_order_median"].item()
 GRAD_MAD = settings["first_order_mad"].item()
 
@@ -82,7 +82,13 @@ for epoch in range(EPOCHS):
         # Calculate un-smoothness penalty
         if SMOOTHNESS_PENALTY_FACTOR > 0.0:
             penalty = calculate_outlier_gradient_penalty_with_preprocess_mod_z_scores(
-                log_prob, X, GRAD_MEDIAN, GRAD_MAD, 1.0, SMOOTHNESS_PENALTY_FACTOR, -1.0
+                log_prob,
+                X,
+                GRAD_MEDIAN,
+                GRAD_MAD,
+                1.0,
+                SMOOTHNESS_PENALTY_FACTOR,
+                -1.0,
             )
             loss += penalty
 

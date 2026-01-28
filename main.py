@@ -9,15 +9,14 @@ plt.rcParams.update({"lines.linewidth": 1.5})
 # plt.rcParams.update({"font.family": "serif"})
 # plt.rcParams.update({"font.serif": "Computer Modern Serif"})
 
-signal = pd.read_csv("data/signal.csv")["mass"].to_numpy()
-background = pd.read_csv("data/background.csv")["mass"].to_numpy()
+signal = pd.read_csv("data/signal.csv")["py_1"].to_numpy()
+background = pd.read_csv("data/background.csv")["py_1"].to_numpy()
 
 plt.hist(
-    [background, signal],
+    [background],
     bins=500,
-    histtype="barstacked",
-    color=["tab:blue", "tab:red"],
-    label=["Background", "Signal"],
+    color=["tab:blue"],
+    label=["Background"],
 )
 plt.xlabel("Mass")
 plt.ylabel("Entries")

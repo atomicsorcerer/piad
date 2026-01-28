@@ -63,31 +63,53 @@ modified_z_score_first_order = (
     0.6745 * (gradients_first_order - first_order_median) / first_order_mad
 )
 
-gradients_second_order = torch.norm(grad_log_prob_second, dim=1)
-grad_std_dev_second_order = torch.std(gradients_second_order)
-grad_mean_second_order = torch.mean(gradients_second_order)
-z_scores_second_order = (
-    gradients_second_order - grad_mean_second_order
-) / grad_std_dev_second_order
+# gradients_second_order = torch.norm(grad_log_prob_second, dim=1)
+# grad_std_dev_second_order = torch.std(gradients_second_order)
+# grad_mean_second_order = torch.mean(gradients_second_order)
+# z_scores_second_order = (
+#     gradients_second_order - grad_mean_second_order
+# ) / grad_std_dev_second_order
+#
+# second_order_median = gradients_second_order.median()
+# second_order_mad = abs(gradients_second_order - second_order_median).median()
+# modified_z_score_second_order = (
+#     0.6745 * (gradients_second_order - second_order_median) / second_order_mad
+# )
 
-second_order_median = gradients_second_order.median()
-second_order_mad = abs(gradients_second_order - second_order_median).median()
-modified_z_score_second_order = (
-    0.6745 * (gradients_second_order - second_order_median) / second_order_mad
-)
+labels = [
+    "First jet energy",
+    "First jet p_x",
+    "First jet p_y",
+    "First jet p_z",
+    "Second jet energy",
+    "Second jet p_x",
+    "Second jet p_y",
+    "Second jet p_z",
+]
+fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(13, 8), sharex=True, sharey=True)
+axes = axes.flatten()
 
-settings = {
-    "first_order_std_dev": grad_std_dev_first_order.item(),
-    "first_order_mean": grad_mean_first_order.item(),
-    "second_order_std_dev": grad_std_dev_second_order.item(),
-    "second_order_mean": grad_mean_second_order.item(),
-    "first_order_median": first_order_median.item(),
-    "first_order_mad": first_order_mad.item(),
-    "second_order_median": second_order_median.item(),
-    "second_order_mad": second_order_mad.item(),
-}
-print(settings)
-settings = pl.DataFrame(settings)
-save_name = input("Save settings as: ")
-if save_name.strip() != "":
-    settings.write_csv(f"pre_process_results/multi_dim_{save_name}.csv")
+for i, axis in enumerate(axes):
+    if i >= len(labels):
+        break
+
+    ind_grads = grad_log_prob_first[..., i].abs()
+    axis.hist(
+        [
+            ind_grads[Y == 0.0].detach().numpy(),
+            ind_grads[Y == 1.0].detach().numpy(),
+        ],
+        range=(0, 1000),
+        bins=z_bins,
+        color=["tab:blue", "tab:red"],
+        # label=["Background", "Signal"],
+        histtype="step",
+        density=True,
+    )
+    axis.set_title(labels[i])
+
+fig.legend(["Signal", "Background"], loc="upper right", bbox_to_anchor=(0.97, 0.95))
+fig.supxlabel("First-order gradient magnitude of given input dimension")
+fig.supylabel("Density")
+plt.tight_layout()
+plt.show()

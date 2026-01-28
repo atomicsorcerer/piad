@@ -2,7 +2,7 @@ import torch
 from matplotlib import pyplot as plt
 from nflows.flows import Flow
 
-from utils.physics import calculate_squared_dijet_mass
+from .physics import calculate_squared_dijet_mass
 
 
 def calculate_outlier_gradient_penalty_with_preprocess_mod_z_scores(
@@ -17,9 +17,6 @@ def calculate_outlier_gradient_penalty_with_preprocess_mod_z_scores(
     grad_log_prob_first_order = torch.autograd.grad(
         outputs=log_prob.sum(), inputs=inputs, create_graph=True
     )[0]
-    # grad_log_prob_second_order = torch.autograd.grad(
-    #     outputs=grad_log_prob_first_order.sum(), inputs=inputs, create_graph=True
-    # )[0]
     gradients = torch.norm(grad_log_prob_first_order, dim=1)
     modified_z_scores = 0.6745 * (gradients - median) / mad
     penalty = torch.nn.functional.relu(

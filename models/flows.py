@@ -27,8 +27,10 @@ def create_spline_flow(
     flow = Flow(composite_transform, base_dist)
 
     if torch.cuda.is_available():
-        print(f"GPU: {torch.cuda.get_device_name(0)} is available.")
         device = torch.device("cuda")
         flow = flow.to(device)
+        print(f"Flow model moved to {torch.cuda.get_device_name(0)}.")
+    else:
+        print("Flow model on CPU.")
 
     return flow

@@ -164,12 +164,12 @@ class ParameterizedBackgroundDataset(Dataset):
 if __name__ == "__main__":
     data = EventDataset(
         "background.csv",
-        "signal.csv",
+        "signal_files/pp-y1-jj_1250GeV.csv",
         ["mass"],
-        500_000,
+        100_000,
         mass_region=(500.0, None),
         signal_proportion=0.1,
-        normalize=True,
+        normalize=False,
         norm_type="one_dim",
     )
     signal = (
@@ -177,10 +177,14 @@ if __name__ == "__main__":
     )
     bg = data.features.detach().numpy()[data.labels.flatten().detach() == 0.0].flatten()
     plt.hist(
-        [bg, signal], bins=300, histtype="barstacked", label=["Background", "Signal"]
+        [bg, signal],
+        bins=300,
+        histtype="barstacked",
+        label=["Background", "Signal"],
+        # range=(500, 3000),
     )
-    plt.xlabel("Normalized Mass")
+    plt.xlabel("Mass")
     plt.ylabel("Entries")
     plt.legend()
-    plt.title("Signal proportion = 10%")
+    plt.title("Signal proportion = 1%")
     plt.show()
